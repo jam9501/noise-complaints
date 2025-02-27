@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Bubble Chart</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        .bubble {
+            fill-opacity: 0.6;
+            cursor: pointer;
+        }
+        .bubble:hover {
+            fill-opacity: 1;
+        }
+        .tooltip {
+            position: absolute;
+            text-align: center;
+            padding: 5px;
+            font-size: 14px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 5px;
+            visibility: hidden;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+<div id="bubble-chart"></div>
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+    const data = [
+        { town: 'New Hyde Park', total: 267 },
+        { town: 'Lynbrook', total: 12 },
+        { town: 'Roslyn', total: 111 },
+        { town: 'Malverne', total: 64 },
+        { town: 'Valley Stream', total: 140 },
+        { town: 'Rosedale', total: 64 },
+        { town: 'Roslyn Heights', total: 65 },
+        { town: 'Springfield Gardens', total: 32 },
+        { town: 'Oyster Bay', total: 48 },
+        { town: 'Arverne', total: 13 },
+        { town: 'Garden City', total: 75 },
+        { town: 'Floral Park', total: 103 },
+        { town: 'Elmont', total: 7 },
+        { town: 'Cedarhurst', total: 8 },
+        { town: 'Glen Head', total: 39 },
+        { town: 'Howard Beach', total: 40 },
+        { town: 'Rockaway Beach', total: 8 },
+        { town: 'Long Beach', total: 7 },
+        { town: 'Rockville Centre', total: 11 }
+    ];
+
+    const width = 800;
+    const height = 500;
+    const maxRadius = 50;
+    const minRadius = 10;
+
+    const svg = d3.select("#bubble-chart").append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    const radiusScale = d3.scaleSqrt()
+        .domain([0, d3.max(data, d => d.total)])
+        .range([minRadius, maxRadius]);
+
+    const colorScale = d3.scaleSequential(d3.interpolateViridis)
+        .domain([0, d3.max(data, d => d.total)]);
+
+    const tooltip = d3.select("#tooltip");
+
+    
+    const bubbles = svg.selectAll(".bubble")
+        .data(data)
+        .enter().append("circle")
+        .attr("class", "bubble")
+        .attr("cx", (d, i) => (i + 1) * (width / (data.length + 1)))
+        .attr("cy", height / 2)
+        .attr("r", d => radiusScale(d.total))
+        .attr("fill", d => colorScale(d.total))
+        .on("mouseover", function(event, d) {
+            tooltip.style("visibility", "visible")
+                .text(`${d.town}: ${d.total} complaints`);
+        })
+        .on("mousemove", function(event) {
+            tooltip.style("top", (event.pageY + 5) + "px")
+                .style("left", (event.pageX + 5) + "px");
+        })
+        .on("mouseout", function() {
+            tooltip.style("visibility", "hidden");
+        });
+
+    
+    bubbles.transition()
+        .duration(2000)
+        .ease(d3.easeElastic)
+        .attr("cy", (d, i) => (Math.random() * (height - 100)) + 50); 
+
+    const drag = d3.drag()
+        .on("drag", function(event, d) {
+            d3.select(this)
+                .attr("cx", event.x)
+                .attr("cy", event.y);
+        });
+
+    bubbles.call(drag);
+
+</script>
+
+</body>
+</html>
