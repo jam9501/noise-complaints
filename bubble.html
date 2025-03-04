@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horizontal Bar Chart - Plane Noise Complaints</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        .bar {
+            fill: steelblue;
+        }
+        .bar:hover {
+            fill: orange;
+        }
+        .tooltip {
+            position: absolute;
+            text-align: center;
+            padding: 5px;
+            font-size: 14px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 5px;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .axis-label {
+            fill: white;
+            font-size: 12px;
+            font-weight: bold; 
+        }
+    </style>
+</head>
+<body>
+
+<div id="bar-chart"></div>
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+    const data = [
+        { town: 'New Hyde Park', total: 267 },
+        { town: 'Lynbrook', total: 12 },
+        { town: 'Roslyn', total: 111 },
+        { town: 'Malverne', total: 64 },
+        { town: 'Valley Stream', total: 140 },
+        { town: 'Rosedale', total: 64 },
+        { town: 'Roslyn Heights', total: 65 },
+        { town: 'Springfield Gardens', total: 32 },
+        { town: 'Oyster Bay', total: 48 },
+        { town: 'Arverne', total: 13 },
+        { town: 'Garden City', total: 75 },
+        { town: 'Floral Park', total: 103 },
+        { town: 'Elmont', total: 7 },
+        { town: 'Cedarhurst', total: 8 },
+        { town: 'Glen Head', total: 39 },
+        { town: 'Howard Beach', total: 40 },
+        { town: 'Rockaway Beach', total: 8 },
+        { town: 'Long Beach', total: 7 },
+        { town: 'Rockville Centre', total: 11 }
+    ];
+
+    const margin = { top: 20, right: 30, bottom: 40, left: 200 };
+    const width = 1000 - margin.left - margin.right;
+    const height = 400 - margin.top - margin.bottom;
+
+    const svg = d3.select("#bar-chart").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    const x = d3.scaleLinear()
+        .domain([0, d3.max(data, d => d.total)])
+        .nice()
+        .range([0, width]);
+
+    const y = d3.scaleBand()
+        .domain(data.map(d => d.town))
+        .range([0, height])
+        .padding(0.1);
+
+    const tooltip = d3.select("#tooltip");
+
+ 
+    svg.append("g")
+        .selectAll(".bar")
+        .data(data)
+        .enter().append("rect")
+        .attr("class", "bar")
+        .attr("x", 0)
+        .attr("y", d => y(d.town))
+        .attr("width", d => x(d.total))
+        .attr("height", y.bandwidth())
+        .on("mouseover", function(event, d) {
+            tooltip.style("visibility", "visible")
+                .text(`${d.town}: ${d.total} complaints`);
+        })
+        .on("mousemove", function(event) {
+            tooltip.style("top", (event.pageY + 5) + "px")
+                .style("left", (event.pageX + 5) + "px");
+        })
+        .on("mouseout", function() {
+            tooltip.style("visibility", "hidden");
+        });
+
+
+    svg.append("g")
+        .selectAll(".axis-label")
+        .data(data)
+        .enter().append("text")
+        .attr("class", "axis-label")
+        .attr("x", d => x(d.total) - 10)
+        .attr("y", d => y(d.town) + y.bandwidth() / 2)
+        .attr("dy", ".35em")
+        .attr("text-anchor", "end")
+        .text(d => d.total)
+        .style("font-size", "12px")
+        .style("fill", "white");
+
+
+    svg.append("g")
+        .call(d3.axisLeft(y))
+        .selectAll(".tick text")
+        .style("font-weight", "bold"); 
+</script>
+
+</body>
+</html>
