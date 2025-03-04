@@ -58,6 +58,9 @@
         { town: 'Rockville Centre', total: 11 }
     ];
 
+    // Sort data from greatest to least based on the 'total' complaints
+    data.sort((a, b) => b.total - a.total);
+
     const margin = { top: 20, right: 30, bottom: 40, left: 200 };
     const width = 1000 - margin.left - margin.right;
     const height = 400 - margin.top - margin.bottom;
@@ -80,7 +83,7 @@
 
     const tooltip = d3.select("#tooltip");
 
- 
+    // Add bars based on sorted data
     svg.append("g")
         .selectAll(".bar")
         .data(data)
@@ -102,7 +105,7 @@
             tooltip.style("visibility", "hidden");
         });
 
-
+    // Add the numbers inside the bars
     svg.append("g")
         .selectAll(".axis-label")
         .data(data)
@@ -116,7 +119,7 @@
         .style("font-size", "12px")
         .style("fill", "white");
 
-
+    // Add Y axis with bolded labels
     svg.append("g")
         .call(d3.axisLeft(y))
         .selectAll(".tick text")
