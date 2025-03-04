@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Bubble Chart</title>
+    <title>Horizontal Bar Chart - Plane Noise Complaints</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
-        .bubble {
-            fill-opacity: 0.6;
-            cursor: pointer;
+        .bar {
+            fill: steelblue;
         }
-        .bubble:hover {
-            fill-opacity: 1;
+        .bar:hover {
+            fill: orange;
         }
         .tooltip {
             position: absolute;
@@ -24,11 +23,16 @@
             visibility: hidden;
             pointer-events: none;
         }
+        .axis-label {
+            fill: white;
+            font-size: 12px;
+            font-weight: bold; 
+        }
     </style>
 </head>
 <body>
 
-<div id="bubble-chart"></div>
+<div id="bar-chart"></div>
 <div class="tooltip" id="tooltip"></div>
 
 <script>
@@ -54,33 +58,38 @@
         { town: 'Rockville Centre', total: 11 }
     ];
 
-    const width = 800;
-    const height = 500;
-    const maxRadius = 50;
-    const minRadius = 10;
+    const margin = { top: 20, right: 30, bottom: 40, left: 200 };
+    const width = 1000 - margin.left - margin.right;
+    const height = 400 - margin.top - margin.bottom;
 
-    const svg = d3.select("#bubble-chart").append("svg")
-        .attr("width", width)
-        .attr("height", height);
+    const svg = d3.select("#bar-chart").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    const radiusScale = d3.scaleSqrt()
+    const x = d3.scaleLinear()
         .domain([0, d3.max(data, d => d.total)])
-        .range([minRadius, maxRadius]);
+        .nice()
+        .range([0, width]);
 
-    const colorScale = d3.scaleSequential(d3.interpolateViridis)
-        .domain([0, d3.max(data, d => d.total)]);
+    const y = d3.scaleBand()
+        .domain(data.map(d => d.town))
+        .range([0, height])
+        .padding(0.1);
 
     const tooltip = d3.select("#tooltip");
 
-    
-    const bubbles = svg.selectAll(".bubble")
+ 
+    svg.append("g")
+        .selectAll(".bar")
         .data(data)
-        .enter().append("circle")
-        .attr("class", "bubble")
-        .attr("cx", (d, i) => (i + 1) * (width / (data.length + 1)))
-        .attr("cy", height / 2)
-        .attr("r", d => radiusScale(d.total))
-        .attr("fill", d => colorScale(d.total))
+        .enter().append("rect")
+        .attr("class", "bar")
+        .attr("x", 0)
+        .attr("y", d => y(d.town))
+        .attr("width", d => x(d.total))
+        .attr("height", y.bandwidth())
         .on("mouseover", function(event, d) {
             tooltip.style("visibility", "visible")
                 .text(`${d.town}: ${d.total} complaints`);
@@ -93,21 +102,25 @@
             tooltip.style("visibility", "hidden");
         });
 
-    
-    bubbles.transition()
-        .duration(2000)
-        .ease(d3.easeElastic)
-        .attr("cy", (d, i) => (Math.random() * (height - 100)) + 50); 
 
-    const drag = d3.drag()
-        .on("drag", function(event, d) {
-            d3.select(this)
-                .attr("cx", event.x)
-                .attr("cy", event.y);
-        });
+    svg.append("g")
+        .selectAll(".axis-label")
+        .data(data)
+        .enter().append("text")
+        .attr("class", "axis-label")
+        .attr("x", d => x(d.total) - 10)
+        .attr("y", d => y(d.town) + y.bandwidth() / 2)
+        .attr("dy", ".35em")
+        .attr("text-anchor", "end")
+        .text(d => d.total)
+        .style("font-size", "12px")
+        .style("fill", "white");
 
-    bubbles.call(drag);
 
+    svg.append("g")
+        .call(d3.axisLeft(y))
+        .selectAll(".tick text")
+        .style("font-weight", "bold"); 
 </script>
 
 </body>
